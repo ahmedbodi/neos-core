@@ -3062,10 +3062,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check timestamp
     LogPrint("debug", "%s: block=%s  is proof of stake=%d\n", __func__, block.GetHash().ToString().c_str(), block.IsProofOfStake());
-    if (block.GetBlockTime() > GetAdjustedTime() + (block.IsProofOfStake() ? 180 : 7200)) // 3 minute future drift for PoS
+    if (block.GetBlockTime() > GetAdjustedTime() + (block.IsProofOfStake() ? 60 : 7200)) // 1 minute future drift for PoS
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
             REJECT_INVALID, "time-too-new");
 
+    // Check timestamp
+    if (block.GetBlockTime() < GetAdjustedTime() + (block.IsProofOfStake() ? 60 : 7200)) // 1 minute future drift for PoS
+        return state.Invalid(error("CheckBlock() : block timestamp too far in the past"),
+            REJECT_INVALID, "time-too-old");
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {
